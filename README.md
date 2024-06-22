@@ -1,56 +1,5 @@
-# Nest
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-
-@Injectable({
-  providedIn: 'root'
-})
-export class UserService {
-  private apiUrl = 'http://your-api-url.com/api'; // Replace with your API URL
-
-  constructor(private http: HttpClient) { }
-
-  getUser(userId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/users/${userId}`);
-  }
-
-  getFollowers(userId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/users/${userId}/followers`);
-  }
-
-  getFollowing(userId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/users/${userId}/following`);
-  }
-}
-
-
-
-
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-
-@Injectable({
-  providedIn: 'root'
-})
-export class PostService {
-  private apiUrl = 'http://your-api-url.com/api'; // Replace with your API URL
-
-  constructor(private http: HttpClient) { }
-
-  getPosts(userId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/users/${userId}/posts`);
-  }
-
-  createPost(postData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/posts`, postData);
-  }
-}
-
-
 <div class="profile-header">
-  <h1>{{ user?.username }}</h1>
+  <h1>{{ user.username }}</h1>
   <button mat-button (click)="follow()">Follow</button>
   <div class="profile-stats">
     <button mat-button>{{ followers.length }} Followers</button>
@@ -59,7 +8,11 @@ export class PostService {
 </div>
 
 <ng-container *ngIf="posts.length > 0; else noPosts">
-  <app-post-grid [posts]="posts"></app-post-grid>
+  <div class="post-grid">
+    <div *ngFor="let post of posts" class="post">
+      <img [src]="post.imageUrl" alt="Post Image">
+    </div>
+  </div>
 </ng-container>
 
 <ng-template #noPosts>
@@ -68,11 +21,7 @@ export class PostService {
 
 
 
-
 import { Component, OnInit } from '@angular/core';
-import { UserService } from '../../services/user.service';
-import { PostService } from '../../services/post.service';
-import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-user-profile',
@@ -80,40 +29,25 @@ import { ActivatedRoute } from '@angular/router';
   styleUrls: ['./user-profile.component.css']
 })
 export class UserProfileComponent implements OnInit {
-  user: any;
-  followers: any[] = [];
-  following: any[] = [];
-  posts: any[] = [];
+  user: any = {
+    username: 'john_doe'
+  };
+  followers: any[] = [
+    { id: 1, name: 'Follower 1' },
+    { id: 2, name: 'Follower 2' }
+  ];
+  following: any[] = [
+    { id: 1, name: 'Following 1' },
+    { id: 2, name: 'Following 2' }
+  ];
+  posts: any[] = [
+    { id: 1, imageUrl: 'https://via.placeholder.com/150' },
+    { id: 2, imageUrl: 'https://via.placeholder.com/150' }
+  ];
 
-  constructor(
-    private userService: UserService,
-    private postService: PostService,
-    private route: ActivatedRoute
-  ) { }
+  constructor() { }
 
-  ngOnInit(): void {
-    const userId = this.route.snapshot.params['id'];
-    this.loadUser(userId);
-    this.loadFollowers(userId);
-    this.loadFollowing(userId);
-    this.loadPosts(userId);
-  }
-
-  loadUser(userId: number): void {
-    this.userService.getUser(userId).subscribe(user => this.user = user);
-  }
-
-  loadFollowers(userId: number): void {
-    this.userService.getFollowers(userId).subscribe(followers => this.followers = followers);
-  }
-
-  loadFollowing(userId: number): void {
-    this.userService.getFollowing(userId).subscribe(following => this.following = following);
-  }
-
-  loadPosts(userId: number): void {
-    this.postService.getPosts(userId).subscribe(posts => this.posts = posts);
-  }
+  ngOnInit(): void { }
 
   follow(): void {
     // Implement follow functionality here
@@ -126,45 +60,17 @@ export class UserProfileComponent implements OnInit {
 
 
 
-
-<div class="post-grid">
-  <div *ngFor="let post of posts" class="post">
-    <img [src]="post.imageUrl" alt="Post Image">
-  </div>
-</div>
-
-
-
-import { Component, Input, OnInit } from '@angular/core';
-
-@Component({
-  selector: 'app-post-grid',
-  templateUrl: './post-grid.component.html',
-  styleUrls: ['./post-grid.component.css']
-})
-export class PostGridComponent implements OnInit {
-  @Input() posts: any[] = [];
-
-  constructor() { }
-
-  ngOnInit(): void { }
-}
-
-
-
 .profile-header {
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin-bottom: 20px;
 }
 
 .profile-stats {
   display: flex;
   gap: 10px;
 }
-
-
-
 
 .post-grid {
   display: grid;
@@ -186,30 +92,27 @@ export class PostGridComponent implements OnInit {
 
 
 
-
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { HttpClientModule } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 
 import { AppComponent } from './app.component';
 import { UserProfileComponent } from './components/user-profile/user-profile.component';
-import { PostGridComponent } from './components/post-grid/post-grid.component';
+import { AppRoutingModule } from './app-routing.module'; // Import the routing module
 
 @NgModule({
   declarations: [
     AppComponent,
-    UserProfileComponent,
-    PostGridComponent
+    UserProfileComponent
   ],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
-    HttpClientModule,
     MatButtonModule,
-    MatCardModule
+    MatCardModule,
+    AppRoutingModule
   ],
   providers: [],
   bootstrap: [AppComponent]
@@ -224,8 +127,8 @@ import { RouterModule, Routes } from '@angular/router';
 import { UserProfileComponent } from './components/user-profile/user-profile.component';
 
 const routes: Routes = [
-  { path: 'profile/:id', component: UserProfileComponent },
-  { path: '', redirectTo: '/profile/1', pathMatch: 'full' } // Default route for testing
+  { path: 'profile', component: UserProfileComponent },
+  { path: '', redirectTo: '/profile', pathMatch: 'full' } // Default route for testing
 ];
 
 @NgModule({
@@ -233,3 +136,4 @@ const routes: Routes = [
   exports: [RouterModule]
 })
 export class AppRoutingModule { }
+
