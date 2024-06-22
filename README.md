@@ -354,3 +354,196 @@ export class UserProfileComponent implements OnInit {
   }
 }
 
+
+
+
+
+
+
+
+
+==============================================================================================================================
+
+
+
+-- Om
+ 
+create database SocialMedia
+ 
+use SocialMedia
+ 
+create table Gender
+(
+id int primary key,
+name nvarchar(25) not null,
+)
+ 
+create table AccountType
+(
+id int primary key,
+AccType nvarchar(20) not null
+)
+ 
+create table Users
+(
+UserName nvarchar(100) primary key,
+Name nvarchar(50) not null,
+Email nvarchar(50) not null unique,
+ContactNumber bigint NOT NULL Unique CHECK  ((len(CONVERT(varchar,ContactNumber))=(10))), 
+DOB date not null,
+Location nvarchar(50) not null,
+Bio nvarchar(300),
+ProfilePicURL nvarchar(500),
+GenderId int references Gender(id) not null,
+AccountTypeID int references AccountType(id) not null,
+CreatedAt date default GetDate(),
+UpdatedAt date default GetDate(),
+ 
+LastSeen date default GetDate(),
+isActive BIT default 0,
+ 
+isDeactivated BIT default 0,
+ 
+isBlocked BIT default 0,
+isReported BIT default 0,
+);
+ 
+create table Circle
+(
+UserName nvarchar(100) references Users(UserName),
+Following nvarchar(100) references Users(UserName),
+FollowedDate date default GETDATE(),
+CONSTRAINT CKForCircle PRIMARY KEY(UserName, Following)
+)
+ 
+CREATE TABLE Tags
+(
+PostID int references Posts(ID),
+TaggedUser NVARCHAR(100) references Users(UserName)
+Constraint CkForTags Primary KEY(PostID, TaggedUser)
+)
+ 
+CREATE TABLE Posts
+(
+ID INT PRIMARY KEY,
+PostByUser NVARCHAR(100) references Users(UserName),
+Caption NVARCHAR(4000),
+Location NVARCHAR(50),
+PostedAt Date default GETDATE()
+)
+ 
+Create Table PostURls
+(
+ID int Primary Key,
+PostID INT references Posts(ID),
+MediaType NVARCHAR(20) NOT NULL,   ---images, videos
+MediaUrl NVARCHAR(4000) NOT NULL,
+)
+ 
+CREATE TABLE Likes
+(
+PostID int references Posts(ID),
+UserName nvarchar(100) references Users(UserName),
+LikedAt date default GETDATE(),
+CONSTRAINT CKForLikes Primary Key(PostID, UserName)
+)
+ 
+CREATE TABLE Comments
+(
+ID int Primary KEY,
+PostID int references Posts(ID),
+UserName nvarchar(100) references Users(UserName),
+Comment nvarchar(500) not null,
+CommentedAt date default GETDATE(),
+)
+ 
+Create Table ReportType
+(
+ID int primary key,
+Category nvarchar(100) not null
+)
+ 
+Create Table Report
+(
+ID int primary key,
+PostID int References Posts(ID),
+Reporter nvarchar(100) references Users(UserName),
+ReportTypeID int references ReportType(ID),
+ReportDate date default GETDATE(),
+Message nvarchar(500),
+isResolved BIT default 0
+)
+ 
+Create Table BlockedUsers
+(
+UserName nvarchar(100) references Users(UserName),
+BlockedUser nvarchar(100) references Users(UserName),
+BlockDate date default GETDATE(),
+CONSTRAINT CkForBlock PRIMARY KEY(UserName, BlockedUser)
+)
+ 
+Create Table SavePost
+(
+PostID int references Posts(ID),
+UserName nvarchar(100) references Users(UserName),
+SaveDate date default GETDATE(),
+CONSTRAINT CkForSave PRIMARY KEY(PostID, UserName)
+)
+ 
+Create Table Story
+(
+ID int primary key,
+UserName nvarchar(100) references Users(UserName),
+MediaType NVARCHAR(20) NOT NULL,   ---images, videos
+MediaUrl NVARCHAR(4000) NOT NULL,
+React nvarchar(5),
+AddDate date default GETDATE()
+)
+ 
+Create Table Chat
+(
+conversationID int not null,
+sender nvarchar(100) references Users(UserName),
+reciever nvarchar(100) references Users(UserName),
+postId int references Posts(ID),
+messageId int primary key,
+message nvarchar(100) not null,
+attachmenturl nvarchar(4000),
+isDeleted bit default 0,
+isUpdated bit default 0,
+sentDate datetime default GETDATE()
+)
+ 
+ 
+CREATE TABLE Promotion
+(
+ID int primary key,
+LocationPreference nvarchar(50),
+PlaceDate  Date default GETDATE(),
+PostID int foreign key references Posts(ID),
+ReachAndPriceID int references ReachAndPrice(ID),
+isActive BIT default 0
+)
+ 
+create table ReachAndPrice
+(
+ID int primary key,
+Reach int,
+Price float
+)
+ 
+-- 18
+ 
+create table PromotionReach
+(
+PromotionID int references Promotion(ID),
+ViewedUser nvarchar(100) references Users(UserName),
+)
+ 
+CREATE TABLE Admin
+( 
+UserName int primary key,
+Name nvarchar(30),
+EmailId nvarchar(100),
+ContactNumber bigint NOT NULL CHECK  ((len(CONVERT(varchar,ContactNumber))=(10)))
+)
