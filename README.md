@@ -53,6 +53,46 @@ export class UserProfileComponent implements OnInit {
     // Implement follow functionality here
   }
 
+
+
+
+
+  ===========================
+
+  ngOnInit(): void {
+    this.route.paramMap.subscribe(params => {
+      this.username = params.get('username') || 'defaultUser';
+      this.loadUserProfile();
+    });
+  }
+
+  loadUserProfile(): void {
+    this.apiService.getUserProfile(this.username).subscribe(
+      data => this.userProfile = data,
+      error => console.error('Error fetching user profile', error)
+    );
+  }
+
+  createPost(): void {
+    const newPost = {
+      postByUser: this.username,
+      caption: 'New Post',
+      location: 'Location',
+      postUrls: [
+        { mediaType: 'image', mediaUrl: 'http://example.com/image.jpg' }
+      ]
+    };
+
+    this.apiService.createPost(newPost).subscribe(
+      response => {
+        console.log('Post created successfully', response);
+        this.loadUserProfile(); // Refresh the user profile to reflect the new post
+      },
+      error => console.error('Error creating post', error)
+    );
+  }
+}
+
   createPost(): void {
     // Implement post creation functionality here
   }
