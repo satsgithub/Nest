@@ -712,6 +712,60 @@ public class UserProfileController : ControllerBase
     }
 }
 
+============================================================
+
+
+
+        [HttpGet("{username}")]
+        
+        public async Task<IActionResult> GetUserProfile(string username)
+        {
+            var user = await _context.Users
+                .Where(u => u.UserName == username)
+                .Select(u => new
+                {
+                    u.UserName,
+                    u.Name,
+                    u.ProfilePicUrl,
+                    u.Bio,
+                    u.Location,
+                    FollowersCount = _context.Circles.Count(c => c.Following == u.UserName),
+                    FollowingCount = _context.Circles.Count(c => c.UserName == u.UserName),
+                    Posts = _context.Posts.Where(p => p.PostByUser == u.UserName)
+                                          .Select(p => new { p.Id, p.Caption, p.PostedAt, p.Location, p.PostUrls })
+                                          .ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(user);
+        }
+
+        [HttpPost("createPost")]
+
+        public async Task<IActionResult> CreatePost([FromBody] Post newPost)
+        {
+            int i = 2;
+            _context.Posts.Add(newPost);
+
+
+            PostUrl objPostUrl = new PostUrl();
+            objPostUrl.Id = i++;
+            objPostUrl.PostId = newPost.Id;
+            objPostUrl.MediaType = "image";
+            objPostUrl.MediaUrl = "C:\\Users\\satyasingh\\source\\repos\\Project_img.jpg";
+            _context.PostUrls.Add(objPostUrl);
+            await _context.SaveChangesAsync();
+
+
+
+            await _context.SaveChangesAsync();
+            return CreatedAtAction(nameof(GetUserProfile), new { username = newPost.PostByUser }, newPost);
+        }
 
 
 
