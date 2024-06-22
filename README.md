@@ -609,3 +609,110 @@ public class UserProfileController : ControllerBase
         return CreatedAtAction(nameof(GetUserProfile), new { username = newPost.PostByUser }, newPost);
     }
 }
+
+
+
+=====================================
+
+CREATE TRIGGER InsertPostUrls
+ON Posts
+AFTER INSERT
+AS
+BEGIN
+    DECLARE @PostID INT
+    SELECT @PostID = ID FROM INSERTED
+
+    -- Example: Add media URLs (This part needs to be adapted based on your actual use case)
+    INSERT INTO PostUrls (PostID, MediaType, MediaUrl)
+    VALUES (@PostID, 'image', 'http://example.com/image1.jpg'),
+           (@PostID, 'video', 'http://example.com/video1.mp4');
+END;
+
+
+
+
+==============
+
+
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Threading.Tasks;
+
+[Route("api/[controller]")]
+[ApiController]
+public class UserProfileController : ControllerBase
+{
+    private readonly SocialMediaContext _context;
+
+    public UserProfileController(SocialMediaContext context)
+    {
+        _context = context;
+    }
+
+    [HttpGet("{username}")]
+    public async Task<IActionResult> GetUserProfile(string username)
+    {
+        var user = await _context.Users
+            .Where(u => u.UserName == username)
+            .Select(u => new
+            {
+                u.UserName,
+                u.Name,
+                u.ProfilePicUrl,
+                u.Bio,
+                u.Location,
+                FollowersCount = _context.Circles.Count(c => c.Following == u.UserName),
+                FollowingCount = _context.Circles.Count(c => c.UserName == u.UserName),
+                Posts = _context.Posts
+                                .Where(p => p.PostByUser == u.UserName)
+                                .Select(p => new
+                                {
+                                    p.ID,
+                                    p.Caption,
+                                    p.PostedAt,
+                                    p.Location,
+                                    PostUrls = _context.PostUrls
+                                                       .Where(url => url.PostID == p.ID)
+                                                       .Select(url => new { url.MediaType, url.MediaUrl })
+                                                       .ToList()
+                                })
+                                .ToList()
+            })
+            .FirstOrDefaultAsync();
+
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(user);
+    }
+
+    [HttpPost("createPost")]
+    public async Task<IActionResult> CreatePost([FromBody] Post newPost)
+    {
+        if (newPost == null || newPost.PostUrls == null || !newPost.PostUrls.Any())
+        {
+            return BadRequest();
+        }
+
+        _context.Posts.Add(newPost);
+        await _context.SaveChangesAsync();
+
+        // Manually add PostUrls since the trigger won't have them
+        foreach (var url in newPost.PostUrls)
+        {
+            url.PostID = newPost.ID;
+            _context.PostUrls.Add(url);
+        }
+        await _context.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(GetUserProfile), new { username = newPost.PostByUser }, newPost);
+    }
+}
+
+
+
+
+
