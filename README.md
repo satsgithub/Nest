@@ -831,5 +831,56 @@ export class ApiService {
   }
 }
 
+==============
+
+
+import { Component, OnInit } from '@angular/core';
+import { ApiService } from '../api.service';
+import { ActivatedRoute } from '@angular/router';
+
+@Component({
+  selector: 'app-user-profile',
+  templateUrl: './user-profile.component.html',
+  styleUrls: ['./user-profile.component.css']
+})
+export class UserProfileComponent implements OnInit {
+  userProfile: any;
+  username: string;
+
+  constructor(private apiService: ApiService, private route: ActivatedRoute) { }
+
+  ngOnInit(): void {
+    this.route.paramMap.subscribe(params => {
+      this.username = params.get('username') || 'defaultUser';
+      this.loadUserProfile();
+    });
+  }
+
+  loadUserProfile(): void {
+    this.apiService.getUserProfile(this.username).subscribe(
+      data => this.userProfile = data,
+      error => console.error('Error fetching user profile', error)
+    );
+  }
+
+  createPost(): void {
+    const newPost = {
+      postByUser: this.username,
+      caption: 'New Post',
+      location: 'Location',
+      postUrls: [
+        { mediaType: 'image', mediaUrl: 'http://example.com/image.jpg' }
+      ]
+    };
+
+    this.apiService.createPost(newPost).subscribe(
+      response => {
+        console.log('Post created successfully', response);
+        this.loadUserProfile(); // Refresh the user profile to reflect the new post
+      },
+      error => console.error('Error creating post', error)
+    );
+  }
+}
 
 
