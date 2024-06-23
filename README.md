@@ -1020,4 +1020,39 @@ public class UserProfileController : ControllerBase
 }
 
 
+===================================
+
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+
+
+export class ApiService {
+  private apiUrl = 'https://localhost:44373/api';
+ // https://localhost:44373/api/UserProfile/satya
+  constructor(private http: HttpClient) { }
+
+  getUserProfile(username: string): Observable<any> {
+    return this.http.get<any>(`https://localhost:44373/api/UserProfile/${username}`);
+  }
+
+
+
+  // createPost(post: any): Observable<any> {
+  //   return this.http.post(`${this.apiUrl}/UserProfile/createPost`, post);
+  // }
+}
+
+
+
+
+
+
+
+
+
 
