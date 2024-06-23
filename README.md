@@ -960,3 +960,64 @@ public async Task<IActionResult> CreatePostURL([FromBody] PostUrl newPostUrl)
     await _context.SaveChangesAsync();
     return CreatedAtAction(nameof(GetUserProfile), new { username = newPostUrl.MediaUrl }, newPostUrl);
 }
+
+
+
+
+
+
+
+===========
+
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Threading.Tasks;
+
+[Route("api/[controller]")]
+[ApiController]
+public class UserProfileController : ControllerBase
+{
+    private readonly YourDbContext _context;
+
+    public UserProfileController(YourDbContext context)
+    {
+        _context = context;
+    }
+
+    // Other existing methods...
+
+    [HttpGet("{username}/posts")]
+    public async Task<IActionResult> GetUserPosts(string username)
+    {
+        var posts = await _context.Posts
+            .Where(p => p.PostByUser == username)
+            .Select(p => new 
+            {
+                p.Id,
+                p.Caption,
+                p.Location,
+                p.PostedAt,
+                PostUrls = _context.PostUrls
+                    .Where(pu => pu.PostId == p.Id)
+                    .Select(pu => new 
+                    {
+                        pu.Id,
+                        pu.MediaType,
+                        pu.MediaUrl
+                    })
+                    .ToList()
+            })
+            .ToListAsync();
+
+        if (posts == null || !posts.Any())
+        {
+            return NotFound();
+        }
+
+        return Ok(posts);
+    }
+}
+
+
+
