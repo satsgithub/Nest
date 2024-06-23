@@ -884,3 +884,61 @@ export class UserProfileComponent implements OnInit {
 }
 
 
+
+
+
+
+
+khgccjjk
+
+
+
+
+
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Threading.Tasks;
+
+[Route("api/[controller]")]
+[ApiController]
+public class UserProfileController : ControllerBase
+{
+    private readonly YourDbContext _context;
+
+    public UserProfileController(YourDbContext context)
+    {
+        _context = context;
+    }
+
+    // Other existing methods...
+
+    [HttpGet("{username}/followers")]
+    public async Task<IActionResult> GetFollowers(string username)
+    {
+        var followers = await _context.Circle
+            .Where(c => c.Following == username)
+            .Select(c => new 
+            {
+                c.UserName,
+                FollowerDetails = _context.Users
+                    .Where(u => u.UserName == c.UserName)
+                    .Select(u => new 
+                    {
+                        u.UserName,
+                        u.Name,
+                        u.ProfilePicURL
+                    })
+                    .FirstOrDefault()
+            })
+            .ToListAsync();
+
+        if (followers == null || !followers.Any())
+        {
+            return NotFound();
+        }
+
+        return Ok(followers);
+    }
+}
+
