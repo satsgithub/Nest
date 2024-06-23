@@ -942,3 +942,21 @@ public class UserProfileController : ControllerBase
     }
 }
 
+=====================================================================================
+[HttpPost("createPost")]
+public async Task<IActionResult> CreatePost([FromBody] Post newPost)
+{
+    _context.Posts.Add(newPost);
+    await _context.SaveChangesAsync();
+                
+    return CreatedAtAction(nameof(GetUserProfile), new { username = newPost.PostByUser }, newPost);
+}
+
+
+[HttpPost("createPostURL")]
+public async Task<IActionResult> CreatePostURL([FromBody] PostUrl newPostUrl)
+{
+    _context.PostUrls.Add(newPostUrl);
+    await _context.SaveChangesAsync();
+    return CreatedAtAction(nameof(GetUserProfile), new { username = newPostUrl.MediaUrl }, newPostUrl);
+}
