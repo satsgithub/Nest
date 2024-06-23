@@ -1048,7 +1048,127 @@ export class ApiService {
 }
 
 
+ĺllllllllllllllllllllllllll
 
+
+
+
+import { Component, OnInit } from '@angular/core';
+import { ApiService } from '../api.service';
+
+@Component({
+  selector: 'app-user-profile',
+  templateUrl: './user-profile.component.html',
+  styleUrls: ['./user-profile.component.css']
+})
+export class UserProfileComponent implements OnInit {
+  username: string = 'satya';
+  userProfile: any;
+  userPosts: any[] = [];
+
+  constructor(private apiService: ApiService) { }
+
+  ngOnInit(): void {
+    this.getUserProfile();
+    this.getUserPosts();
+  }
+
+  getUserProfile(): void {
+    this.apiService.getUserProfile(this.username).subscribe(
+      data => this.userProfile = data,
+      error => console.error('Error fetching user profile', error)
+    );
+  }
+
+  getUserPosts(): void {
+    this.apiService.getUserPosts(this.username).subscribe(
+      data => this.userPosts = data,
+      error => console.error('Error fetching user posts', error)
+    );
+  }
+}
+
+
+
+
+
+<div class="profile-header">
+  <img [src]="userProfile?.profilePicUrl" alt="{{userProfile?.userName}}'s profile picture" class="profile-pic">
+  <div class="profile-info">
+    <h2>{{userProfile?.userName}}</h2>
+    <p>{{userProfile?.bio}}</p>
+    <p>{{userProfile?.location}}</p>
+    <div class="counts">
+      <span><strong>{{userProfile?.followersCount}}</strong> Followers</span>
+      <span><strong>{{userProfile?.followingCount}}</strong> Following</span>
+      <span><strong>{{userPosts.length}}</strong> Posts</span>
+    </div>
+  </div>
+</div>
+
+<div class="posts-grid">
+  <div *ngFor="let post of userPosts" class="post-item">
+    <img *ngFor="let url of post.postUrls" [src]="url.mediaUrl" alt="Post Image">
+    <div class="caption">{{ post.caption }}</div>
+  </div>
+</div>
+
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.profile-pic {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  margin-right: 20px;
+}
+
+.profile-info {
+  flex: 1;
+}
+
+.profile-info h2 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.profile-info p {
+  margin: 5px 0;
+}
+
+.counts {
+  display: flex;
+  gap: 20px;
+}
+
+.posts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.post-item {
+  position: relative;
+}
+
+.post-item img {
+  width: 100%;
+  height: auto;
+}
+
+.caption {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 5px;
+  border-radius: 5px;
+}
 
 
 
